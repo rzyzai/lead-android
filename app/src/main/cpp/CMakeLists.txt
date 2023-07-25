@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.22)
+project(lead_server)
+set(CMAKE_CXX_STANDARD 17)
+include_directories(include)
+include_directories(include/bundled)
+find_package(Threads REQUIRED)
+add_library(lead_server SHARED src/main.cpp src/server.cpp src/user.cpp src/utils.cpp src/voc.cpp)
+target_link_libraries(lead_server Threads::Threads)

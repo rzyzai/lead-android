@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead</title>
+    <link href="css/mdui.min.css" rel="stylesheet"/>
+    <link href="css/googlefont.css"
+          rel="stylesheet"/>
+    <link href="css/lead.css" rel="stylesheet"/>
+    <script src="js/mdui.min.js"></script>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/lead.js"></script>
+</head>
+<body>
+<div class="mdui-toolbar mdui-color-blue-700 mdui-shadow-5">
+    <div class="mdui-drawer mdui-drawer-close" id="left-drawer">
+        <a class="mdui-btn mdui-btn-icon" href="#" mdui-drawer-close>
+            <i class="mdui-icon material-icons mdui-text-color-black-icon">arrow_back</i>
+        </a>
+        <ul class="mdui-list">
+            <a href="/" class="mdui-list-item mdui-ripple">
+                <i class="mdui-list-item-icon mdui-icon material-icons mdui-text-color-black-icon">home</i>
+                <div class="mdui-list-item-content mdui-text-color-black-text">主页</div>
+            </a>
+            <a href="record.html" class="mdui-list-item mdui-ripple">
+                <i class="mdui-list-item-icon mdui-icon material-icons mdui-text-color-black-icon">fiber_smart_record</i>
+                <div class="mdui-list-item-content mdui-text-color-black-text">记录</div>
+            </a>
+            <a class="mdui-list-item mdui-ripple mdui-list-item-active">
+                <i class="mdui-list-item-icon mdui-icon material-icons mdui-text-color-black-icon">info_outline</i>
+                <div class="mdui-list-item-content">关于</div>
+            </a>
+        </ul>
+        <div class="copyright">
+            <p>© 2023 caozhanhao</p>
+            <p>Powered by
+                <a href="https://github.com/caozhanhao/lead" target="_blank">Lead</a>
+                & <a href="https://mdui.org" target="_blank">MDUI</a>
+            </p>
+        </div>
+    </div>
+    <a class="mdui-btn mdui-btn-icon" href="#" mdui-drawer="{target: '#left-drawer', overlay: true}">
+        <i class="mdui-icon material-icons mdui-text-color-white-icon">menu</i>
+    </a>
+    <span class="mdui-typo-title mdui-text-color-white">Lead</span>
+    <div class="mdui-toolbar-spacer"></div>
+</div>
+<div class="mdui-container-fluid mdui-text-center">
+    <div class="banner">
+        <h1>Lead</h1>
+        <div class="meta">一个简约的背单词应用</div>
+        <div class="more-meta mdui-typo">
+            <span>
+                <a href="https://github.com/caozhanhao/lead" rel="nofollow" target="_blank">Github</a>
+            </span>
+            <span>
+                <a href="https://gitee.com/cmvy2020/lead" rel="nofollow" target="_blank">Gitee</a>
+            </span>
+        </div>
+    </div>
+    <div class="info">
+        <h3>开发</h3>
+        <div class="mdui-chip">
+        <span class="mdui-chip-icon mdui-color-indigo">
+            <i class="mdui-icon material-icons">developer_mode</i>
+        </span>
+            <span class="mdui-chip-title">Cao, Z.-H.</span>
+        </div>
+        <h3>测试</h3>
+        <div class="mdui-chip">
+        <span class="mdui-chip-icon mdui-color-blue">
+            <i class="mdui-icon material-icons">bug_report</i>
+        </span>
+            <span class="mdui-chip-title">Sun, Q.</span>
+        </div>
+        <div class="mdui-chip">
+        <span class="mdui-chip-icon mdui-color-blue">
+            <i class="mdui-icon material-icons">bug_report</i>
+        </span>
+            <span class="mdui-chip-title">Zhang, Z.</span>
+        </div>
+        <div class="mdui-chip">
+        <span class="mdui-chip-icon mdui-color-blue">
+            <i class="mdui-icon material-icons">bug_report</i>
+        </span>
+            <span class="mdui-chip-title">Zhang, B.-W.</span>
+        </div>
+    </div>
+</div>
+</body>
+</html>
