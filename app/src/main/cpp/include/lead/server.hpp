@@ -22,9 +22,9 @@
 #ifndef LEAD_SERVER_HPP
 #define LEAD_SERVER_HPP
 #pragma once
-
 #include "utils.hpp"
 #include "user.hpp"
+#define CPPHTTPLIB_THREAD_POOL_COUNT 2
 #include "cpp-httplib/httplib.h"
 #include "nlohmann/json.hpp"
 #include <string>
