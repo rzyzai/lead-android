@@ -1,3 +1,4 @@
+"use strict"
 let data_list = [];
 let word = "";
 let index = 0;
@@ -28,7 +29,8 @@ function apply_quiz(new_quiz) {
     prompted = false;
 }
 
-function get_quiz(word_index = -1) {
+function get_quiz(word_index) {
+    word_index = typeof word_index !== 'undefined' ?  word_index : -1;
     $.ajax({
         type: 'GET',
         url: "api/get_quiz",
