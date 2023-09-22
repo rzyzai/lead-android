@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2023 caozhanhao
+// Copyright (c) 2023 rzyzai, and caozhanhao
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,16 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 #include "lead/server.hpp"
-#include <filesystem>
-#include <stdexcept>
-#include <string>
 #include <jni.h>
+#include <filesystem>
 
 template<typename T, typename... Ts>
 void detect_file(T&& arg1, Ts&& ...args)
 {
   if (!std::filesystem::is_regular_file(arg1))
-    throw std::runtime_error("Error: Missing file: " + std::string(arg1) + ".\n");
+    std::cerr << "Warning: Missing file: " << arg1 << "." << std::endl;
   if constexpr(sizeof...(args) > 0)
     detect_file(std::forward<Ts>(args)...);
 }
@@ -57,15 +55,15 @@ void lead_server_run(const std::string& addr, int port, const std::string& res_p
              "fonts/roboto/Roboto-Regular.woff2", "fonts/roboto/Roboto-RegularItalic.woff",
              "fonts/roboto/Roboto-RegularItalic.woff2", "fonts/roboto/Roboto-Thin.woff",
              "fonts/roboto/Roboto-Thin.woff2", "fonts/roboto/Roboto-ThinItalic.woff",
-             "fonts/roboto/Roboto-ThinItalic.woff2", "html/about.html", "html/index.html", "html/record.html",
+             "fonts/roboto/Roboto-ThinItalic.woff2", "html/about.html", "html/index.html", "html/marked.html",
+             "html/memorize.html", "html/passed.html", "html/quiz.html", "html/search.html", "icons/favicon.ico",
              "icons/material-icons/LICENSE.txt", "icons/material-icons/MaterialIcons-Regular.ijmap",
              "icons/material-icons/MaterialIcons-Regular.woff", "icons/material-icons/MaterialIcons-Regular.woff2",
              "js/jquery.min.js", "js/lead.js", "js/mdui.esm.js", "js/mdui.esm.js.map", "js/mdui.js", "js/mdui.js.map",
-             "js/mdui.min.js", "js/mdui.min.js.map", "records/record.json", "voc/data.json", "voc/index.json");
-  lead::Server svr(addr, port, res_path);
+             "js/mdui.min.js", "js/mdui.min.js.map", "js/hammer.min.js", "records/record.json", "voc/voc.json");
+  lead::Server svr(addr, port, res);
   svr.run();
 }
-
 
 char* j2c(JNIEnv* env, jstring jstr)
 {
@@ -91,6 +89,6 @@ extern "C"
 {
 JNIEXPORT void JNICALL Java_com_caozhanhao_lead_LeadServer_run
 (JNIEnv *env, jobject, jstring addr, jint port, jstring res_path) {
-  lead_server_run(j2c(env, addr), static_cast<int>(port),j2c(env, res_path));
+lead_server_run(j2c(env, addr), static_cast<int>(port),j2c(env, res_path));
 }
 }

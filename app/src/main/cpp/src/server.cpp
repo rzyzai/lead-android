@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2023 caozhanhao
+// Copyright (c) 2023 rzyzai, and caozhanhao
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,10 +19,10 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-#include "cpp-httplib/httplib.h"
 #include "lead/server.hpp"
 #include "lead/utils.hpp"
 #include "lead/user.hpp"
+#include "cpp-httplib/httplib.h"
 #include "nlohmann/json.hpp"
 #include <string>
 #include <chrono>
@@ -38,6 +38,7 @@ namespace lead
   {
     httplib::Server svr;
     svr.set_mount_point("/", res_path / "index.html");
+    svr.set_mount_point("/favicon.ico", res_path / "icon" / "favicon.ico");
     svr.set_mount_point("/", res_path / "html");
     svr.set_mount_point("/css", res_path / "css");
     svr.set_mount_point("/fonts", res_path / "fonts");
@@ -48,54 +49,201 @@ namespace lead
       WordRef wr;
       if (req.has_param("word_index"))
         wr = user.get_word(std::stoi(req.get_param_value("word_index")));
-      else
-        wr = user.get_random_word();
       auto quiz = user.get_quiz(wr);
+      wr = user.vocabulary.at(quiz["indexes"][quiz["answer"]].get<int>());
       res.set_content(nlohmann::json{
           {"status", "success"},
-          {"word",   wr.word->word},
+          {"word",   wr},
           {"quiz",   quiz},
-          {"index",  wr.index}
       }.dump(), "application/json");
       user.write_records();
     });
     svr.Get("/api/pass", [this](const httplib::Request &req, httplib::Response &res)
     {
-      user.word_record(std::stoi(req.get_param_value("word_index"))).points = 0;
+      user.word_record(std::stoi(req.get_param_value("word_index")))->points = 0;
       res.set_content(nlohmann::json{{"status", "success"}}.dump(), "application/json");
     });
+    svr.Get("/api/renew", [this](const httplib::Request &req, httplib::Response &res)
+    {
+      user.word_record(std::stoi(req.get_param_value("word_index")))->points = planned_review_times;
+      res.set_content(nlohmann::json{{"status", "success"}}.dump(), "application/json");
+    });
+    
     svr.Get("/api/quiz_passed", [this](const httplib::Request &req, httplib::Response &res)
     {
-      auto &p = user.word_record(std::stoi(req.get_param_value("word_index"))).points;
+      auto &p = user.word_record(std::stoi(req.get_param_value("word_index")))->points;
       if (p != 0) --p;
       res.set_content(nlohmann::json{{"status", "success"}}.dump(), "application/json");
     });
     svr.Get("/api/quiz_failed", [this](const httplib::Request &req, httplib::Response &res)
     {
-      auto &p = user.word_record(std::stoi(req.get_param_value("word_index"))).points;
-      p += 3;
+      user.word_record(std::stoi(req.get_param_value("word_index")))->points += 10;
       res.set_content(nlohmann::json{{"status", "success"}}.dump(), "application/json");
     });
     svr.Get("/api/quiz_prompt", [this](const httplib::Request &req, httplib::Response &res)
     {
       size_t index = std::stoi(req.get_param_value("word_index"));
-      auto &p = user.word_record(index).points;
+      auto &p = user.word_record(index)->points;
       ++p;
+      auto a = std::stoi(req.get_param_value("A_index"));
+      auto b = std::stoi(req.get_param_value("B_index"));
+      auto c = std::stoi(req.get_param_value("C_index"));
+      auto d = std::stoi(req.get_param_value("D_index"));
       res.set_content(nlohmann::json{{"status", "success"},
-                                     {"A",      user.get_explanation(std::stoi(req.get_param_value("A_index")))},
-                                     {"B",      user.get_explanation(std::stoi(req.get_param_value("B_index")))},
-                                     {"C",      user.get_explanation(std::stoi(req.get_param_value("C_index")))},
-                                     {"D",      user.get_explanation(
-                                         std::stoi(req.get_param_value("D_index")))}}.dump(), "application/json");
+                                     {"A",  {{"is_marked", user.is_marked(a)}, {"explanation", user.get_explanation(a)}}},
+                                     {"B",  {{"is_marked", user.is_marked(b)}, {"explanation", user.get_explanation(b)}}},
+                                     {"C",  {{"is_marked", user.is_marked(c)}, {"explanation", user.get_explanation(c)}}},
+                                     {"D",  {{"is_marked", user.is_marked(d)}, {"explanation", user.get_explanation(d)}}}
+      }.dump(), "application/json");
     });
     svr.Get("/api/search", [this](const httplib::Request &req, httplib::Response &res)
     {
       res.set_content(user.search(req.get_param_value("word")).dump(), "application/json");
     });
-    svr.Get("/api/get_progress", [this](const httplib::Request &req, httplib::Response &res)
+  
+    svr.Get("/api/get_marked", [this](const httplib::Request &req, httplib::Response &res)
     {
-      res.set_content(user.get_progress().dump(), "application/json");
+      res.set_content(user.get_marked().dump(), "application/json");
     });
+  
+    svr.Get("/api/get_passed", [this](const httplib::Request &req, httplib::Response &res)
+    {
+      res.set_content(user.get_passed().dump(), "application/json");
+    });
+  
+    svr.Get("/api/get_explanation", [this](const httplib::Request &req, httplib::Response &res)
+    {
+      auto i = std::stoi(req.get_param_value("word_index"));
+      res.set_content(nlohmann::json{{"status", "success"}, {"explanation", user.get_explanation(i)}}.dump(), "application/json");
+    });
+  
+    svr.Get("/api/get_word", [this](const httplib::Request &req, httplib::Response &res)
+    {
+      auto i = std::stoi(req.get_param_value("word_index"));
+      res.set_content(nlohmann::json{{"status", "success"}, {"word", user.get_word(i).word->word}}.dump(), "application/json");
+    });
+    
+    svr.Get("/api/get_plan", [this](const httplib::Request &req, httplib::Response &res)
+    {
+      res.set_content(user.get_plan().dump(), "application/json");
+    });
+    
+    svr.Get("/api/mark_word", [this](const httplib::Request &req, httplib::Response &res)
+    {
+      int ret = user.mark_word(std::stoi(req.get_param_value("word_index")));
+      if(ret == 0)
+      {
+        user.write_records();
+        res.set_content(nlohmann::json{{"status", "success"}}.dump(), "application/json");
+      }
+      else
+      {
+        user.write_records();
+        res.set_content(nlohmann::json{{"status", "failed"}, {"message", "已经收藏过了"}}.dump(), "application/json");
+      }
+    });
+  
+    svr.Get("/api/unmark_word", [this](const httplib::Request &req, httplib::Response &res)
+    {
+      int ret = user.unmark_word(std::stoi(req.get_param_value("word_index")));
+      if(ret == 0)
+      {
+        user.write_records();
+        res.set_content(nlohmann::json{{"status", "success"}}.dump(), "application/json");
+      }
+      else
+      {
+        user.write_records();
+        res.set_content(nlohmann::json{{"status", "failed"}, {"message", "没有收藏过该单词"}}.dump(), "application/json");
+      }
+    });
+  
+    svr.Get("/api/clear_records", [this](const httplib::Request &req, httplib::Response &res)
+    {
+      user.clear_records();
+      user.write_records();
+      res.set_content(nlohmann::json{{"status", "success"}}.dump(), "application/json");
+    });
+  
+    svr.Get("/api/clear_marks", [this](const httplib::Request &req, httplib::Response &res)
+    {
+      user.clear_marks();
+      user.write_records();
+      res.set_content(nlohmann::json{{"status", "success"}}.dump(), "application/json");
+    });
+  
+    svr.Get("/api/prev_memorize_word", [this](const httplib::Request &req, httplib::Response &res)
+    {
+      WordRef wr = user.prev_memorize_word();
+      if(wr.is_valid())
+      {
+        res.set_content(nlohmann::json{
+            {"status",     "success"},
+            {"word",       wr},
+            {"content",    user.get_explanation(wr.index)},
+        }.dump(), "application/json");
+      }
+      else
+      {
+        res.set_content(nlohmann::json{
+            {"status",     "failed"},
+            {"message",  "没有上一个了"}
+        }.dump(), "application/json");
+      }
+    });
+  
+    svr.Get("/api/set_memorize_word", [this](const httplib::Request &req, httplib::Response &res)
+    {
+      auto i = std::stoi(req.get_param_value("word_index"));
+      WordRef wr = user.set_memorize_word(i);
+      if(wr.is_valid())
+      {
+        user.write_records();
+        res.set_content(nlohmann::json{
+            {"status",     "success"},
+            {"word",       wr},
+            {"content",    user.get_explanation(wr.index)},
+        }.dump(), "application/json");
+      }
+      else
+      {
+        res.set_content(nlohmann::json{
+            {"status",     "failed"},
+            {"message",     "错误的 word_index"}
+        }.dump(), "application/json");
+      }
+    });
+  
+  
+    svr.Get("/api/memorize_word", [this](const httplib::Request &req, httplib::Response &res)
+    {
+      WordRef wr;
+      if(req.has_param("next") && req.get_param_value("next") == "true")
+      {
+        if(auto &p = user.word_record(user.curr_memorize_word().index)->points; p != 0)
+          --p;
+        wr = user.get_memorize_word();
+        if(!wr.is_valid())
+        {
+          res.set_content(nlohmann::json{
+              {"status",     "failed"},
+              {"message",    "没有下一个了"},
+          }.dump(), "application/json");
+          return;
+        }
+        user.write_records();
+      }
+      else
+      {
+        wr = user.curr_memorize_word();
+      }
+      res.set_content(nlohmann::json{
+          {"status",     "success"},
+          {"word",       wr},
+          {"content",    user.get_explanation(wr.index)},
+      }.dump(), "application/json");
+    });
+    
     svr.set_exception_handler([](const auto &req, auto &res, std::exception_ptr ep)
                               {
                                 auto fmt = "<h1>Error 500</h1><p>%s</p>";
@@ -136,7 +284,7 @@ namespace lead
                      {
                        std::cout << "    " << r.first << ": " << r.second << "\n";
                      }
-
+      
                      if (utils::begin_with(req.path, "/css") || utils::begin_with(req.path, "/fonts")
                          || utils::begin_with(req.path, "/html") || utils::begin_with(req.path, "/icons")
                          || utils::begin_with(req.path, "/js") || req.path == "/")
@@ -147,7 +295,7 @@ namespace lead
                      {
                        std::cout << "Response: \n" << "  Body: " << res.body << "\n";
                      }
-
+      
                      auto tt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
                      struct tm *ptm = localtime(&tt);
                      char date[60] = {0};
@@ -156,6 +304,7 @@ namespace lead
                              (int) ptm->tm_hour, (int) ptm->tm_min, (int) ptm->tm_sec);
                      std::cout << utils::green("^^^^^^^^^^") << date << utils::green("^^^^^^^^^^") << std::endl;
                    });
+    
     std::cout << "Server started at '" << listen_addr << ":" << listen_port << "'." << std::endl;
     svr.listen(listen_addr, listen_port);
   }

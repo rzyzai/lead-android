@@ -32,7 +32,7 @@
 
 namespace lead
 {
-  constexpr size_t planned_review_times = 10;
+  constexpr size_t planned_review_times = 30;
   
   struct WordRecord
   {
@@ -47,17 +47,26 @@ namespace lead
   class User
   {
   private:
-    VOC vocabulary;
     std::vector<WordRecord> word_records;
+    std::vector<size_t> marked_words;
     std::string record_path;
+    size_t plan_pos;
   public:
     User(const std::string &voc_dir_path, const std::string &record_dir_path);
     
     WordRef get_word(size_t w) const;
     
     WordRef get_random_word() const;
+  
+    WordRef get_memorize_word();
     
-    WordRecord &word_record(size_t w);
+    WordRef prev_memorize_word();
+  
+    WordRef set_memorize_word(size_t index);
+    
+    WordRef curr_memorize_word() const;
+    
+    WordRecord *word_record(size_t w);
     
     std::string get_explanation(size_t index) const;
     
@@ -65,9 +74,25 @@ namespace lead
   
     nlohmann::json search(const std::string &word) const;
     
-    nlohmann::json get_progress() const;
+    void clear_records();
+    
+    void clear_marks();
+  
+    int mark_word(size_t index);
+  
+    int unmark_word(size_t index);
+    
+    bool is_marked(size_t index) const;
+  
+    nlohmann::json get_marked() const;
+    
+    nlohmann::json get_passed() const;
+    
+    nlohmann::json get_plan() const;
   
     void write_records();
+  
+    VOC vocabulary;
   };
 }
 #endif
