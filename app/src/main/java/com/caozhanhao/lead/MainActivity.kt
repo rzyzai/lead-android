@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2023 caozhanhao
+// Copyright (c) 2023 rzyzai, and caozhanhao
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,6 @@ package com.caozhanhao.lead
 
 import android.content.Context
 import android.os.Bundle
-import android.text.Html
 import android.util.Log
 import android.view.KeyEvent
 import android.view.ViewGroup
@@ -106,13 +105,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         immersive(getColor(R.color.primaryDark), false)
-        copyFilesFromAssets(this, "css", filesDir.toString() + "/css")
-        copyFilesFromAssets(this, "fonts", filesDir.toString() + "/fonts")
-        copyFilesFromAssets(this, "html", filesDir.toString() + "/html")
-        copyFilesFromAssets(this, "icons", filesDir.toString() + "/icons")
-        copyFilesFromAssets(this, "js", filesDir.toString() + "/js")
-        copyFilesFromAssets(this, "records", filesDir.toString() + "/records")
-        copyFilesFromAssets(this, "voc", filesDir.toString() + "/voc")
+        val version = File(filesDir.toString() + "/records/version")
+        if(!version.exists() || version.readText() != "1.2.1") {
+            copyFilesFromAssets(this, "css", filesDir.toString() + "/css")
+            copyFilesFromAssets(this, "fonts", filesDir.toString() + "/fonts")
+            copyFilesFromAssets(this, "html", filesDir.toString() + "/html")
+            copyFilesFromAssets(this, "icons", filesDir.toString() + "/icons")
+            copyFilesFromAssets(this, "js", filesDir.toString() + "/js")
+            copyFilesFromAssets(this, "records", filesDir.toString() + "/records")
+            copyFilesFromAssets(this, "voc", filesDir.toString() + "/voc")
+        }
         val svr = LeadServer()
         val th = Thread { svr.run("127.0.0.1", 8968, filesDir.toString()) }
         th.start()
