@@ -38,13 +38,18 @@ namespace lead
   {
   private:
     std::filesystem::path res_path;
-    User user;
+    VOC vocabulary;
+    UserManager user_manager;
     std::string listen_addr;
     int listen_port;
   public:
     Server(const std::string addr, int port, const std::string &res_path_);
     
     void run();
+
+  private:
+    void auth_do(const httplib::Request &req, httplib::Response &res,
+                 const std::function<nlohmann::json(std::unique_ptr<UserRef>, const httplib::Request &)> &func);
   };
 }
 #endif

@@ -30,7 +30,6 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
-#include <deque>
 #include <set>
 #include <random>
 
@@ -68,6 +67,8 @@ namespace lead
   private:
     std::vector<Word> vocabulary;
   public:
+    VOC(const std::string &voc_path);
+    
     void load(const std::vector<Word> &word);
     
     void load(const std::string &voc_path);
@@ -78,7 +79,7 @@ namespace lead
     
     WordRef at(size_t w) const;
   
-    std::deque<size_t> search(const std::string &w) const;
+    std::vector<size_t> search(const std::string &w) const;
     
     size_t size() const;
   };
